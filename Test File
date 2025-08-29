@@ -1,0 +1,94 @@
+##tests/test_preprocessing.py---->>>>>>
+
+import pytest
+import pandas as pd
+import numpy as np
+from src.preprocessing import preprocess_data
+
+def test_preprocess_data():
+    """Test the preprocess_data function"""
+    
+    data = {
+        'age': [25, 30, 35, 40, 45],
+        'gender': ['M', 'F', 'M', 'F', 'M'],
+        'chol': [180, 200, 220, 240, 260],
+        'target': [0, 1, 0, 1, 0]
+    }
+    df = pd.DataFrame(data)
+    
+    
+    X_train, X_test, y_train, y_test, scaler = preprocess_data(df, 'target')
+    
+   
+    assert X_train is not None
+    assert X_test is not None
+    assert y_train is not None
+    assert y_test is not None
+    assert scaler is not None
+    assert len(X_train) + len(X_test) == len(df)
+    assert len(y_train) + len(y_test) == len(df)
+
+
+##tests/test_models.py--->>>>>>>>>
+
+
+import pytest
+import numpy as np
+from src.models import DiseasePredictionModels
+
+def test_model_training():
+    """Test model training functionality"""
+  
+    X_train = np.random.rand(100, 5)
+    y_train = np.random.randint(0, 2, 100)
+    
+
+    model_pipeline = DiseasePredictionModels()
+    model_pipeline.train_models(X_train, y_train)
+    
+  
+    assert len(model_pipeline.trained_models) > 0
+    assert 'Logistic Regression' in model_pipeline.trained_models
+    assert 'Random Forest' in model_pipeline.trained_models
+
+def test_model_evaluation():
+    """Test model evaluation functionality"""
+    
+    X_train = np.random.rand(100, 5)
+    y_train = np.random.randint(0, 2, 100)
+    X_test = np.random.rand(20, 5)
+    y_test = np.random.randint(0, 2, 20)
+    
+   
+    model_pipeline = DiseasePredictionModels()
+    model_pipeline.train_models(X_train, y_train)
+    results_df = model_pipeline.evaluate_models(X_test, y_test)
+
+    assert results_df is not None
+    assert 'Accuracy' in results_df.columns
+    assert 'F1-Score' in results_df.columns
+    assert len(results_df) == len(model_pipeline.trained_models)
+
+##tests/test_evaluation.py----->>>>>>>
+
+import pytest
+import numpy as np
+from src.evaluation import evaluate_model
+
+def test_evaluate_model():
+    """Test the evaluate_model function"""
+    # Create dummy data
+    y_true = np.array([0, 1, 0, 1, 0, 1])
+    y_pred = np.array([0, 1, 0, 0, 1, 1])
+    y_prob = np.array([0.1, 0.9, 0.2, 0.4, 0.6, 0.8])
+    
+  
+    metrics = evaluate_model(y_true, y_pred, y_prob)
+    
+
+    assert 'Accuracy' in metrics
+    assert 'Precision' in metrics
+    assert 'Recall' in metrics
+    assert 'F1-Score' in metrics
+    assert 'ROC-AUC' in metrics
+    assert all(0 <= value <= 1 for value in metrics.values() if value is not None)
